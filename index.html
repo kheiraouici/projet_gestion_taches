@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestionnaire de Tâches</title>
+</head>
+<body>
+  <h1>Mes Tâches</h1>
+  <form id="taskForm">
+    <input type="text" id="title" placeholder="Titre" required>
+    <input type="text" id="description" placeholder="Description">
+    <input type="text" id="category" placeholder="Catégorie (optionnel)">
+    <button type="submit">Ajouter</button>
+  </form>
+  <ul id="taskList"></ul>
+  <script>
+    const API_URL = "http://localhost:5000/tasks";
+    const list = document.getElementById("taskList");
+    const form = document.getElementById("taskForm");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+      const category = document.getElementById("category").value;
+      await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, description, category })
+      });
+      form.reset();
+      load();
+    });
+
+    async function load() {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+      list.innerHTML = "";
+      data.forEach(t => {
+        const li = document.createElement("li");
+        li.textContent = `${t.title} [${t.status}] ${t.category || ""}`;
+        const btn = document.createElement("button");
+        btn.textContent = "Supprimer";
+        btn.onclick = async () => {
+          await fetch(\`\${API_URL}/\${t.id}\`, { method: "DELETE" });
+          load();
+        };
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+    }
+    load();
+  </script>
+</body>
+</html>
